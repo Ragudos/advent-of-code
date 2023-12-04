@@ -9,19 +9,21 @@ fn main() {
         let mut first_digit = String::with_capacity(1);
         let mut last_digit = String::with_capacity(1);
 
+        println!("string: {}", string);
+
         if let Some(converted_string) = find_first_named_int(string) {
             let char_val = converted_string.chars().next().unwrap();
 
             first_digit.push(char_val);
         } else {
-            for char in string.chars() {
+            for (idx, char) in string.chars().enumerate() {
                 if char.is_numeric() {
                     first_digit.push(char);
                     break;
                 }
 
-                let Some((_prefix, suffix)) = string.split_once(char) else { continue };
-                let Some(first_named_int) = find_first_named_int(&suffix) else { continue };
+                let sliced_string = String::from(string).split_off(idx);
+                let Some(first_named_int) = find_first_named_int(&sliced_string) else { continue };
 
                 first_digit.push_str(&first_named_int);
                 break;
@@ -33,16 +35,16 @@ fn main() {
 
             last_digit.push(char_val);
         } else {
-            for char in string.chars().rev() {
+            for (idx, char) in string.chars().rev().enumerate() {
                 if char.is_numeric() {
                     last_digit.push(char);
                     break;
                 }
 
-                let reversed_string = string.chars().rev().collect::<String>();
-                let Some((_reversed_prefix, reversed_suffix)) = reversed_string.split_once(char) else { continue };
-                let suffix = reversed_suffix.chars().rev().collect::<String>();
-                let Some(last_named_int) = find_last_named_int(&suffix) else { continue };
+                let mut reversed_string = string.chars().rev().collect::<String>();
+                let reversed_split_string = reversed_string.split_off(idx);
+                let sliced_string = reversed_split_string.chars().rev().collect::<String>();
+                let Some(last_named_int) = find_last_named_int(&sliced_string) else { continue };
 
                 last_digit.push_str(&last_named_int);
                 break;
