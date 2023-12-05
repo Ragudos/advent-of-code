@@ -1,6 +1,6 @@
 use crate::utils::read_file;
 
-pub fn day1() {
+pub fn main() {
     let binding = read_file("day1input.txt");
     let input_contents = binding.split("\r\n").into_iter();    
     let mut sum: usize = 0;

@@ -1,10 +1,22 @@
+use std::process;
+
 mod day1;
+mod day2;
 mod utils;
 
-use day1::day1;
-
 fn main() {
-    day1();
+    let arguments: Vec<_> = std::env::args().collect();
+    let day = arguments[1].parse::<String>().unwrap();
+    let day_str = day.as_str();
+
+    match day_str {
+        "day1" => day1::main(),
+        "day2" => day2::main(),
+        _ => {
+            println!("Invalid day");
+            process::exit(1);
+        },
+    }
 }
 
 
