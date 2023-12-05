@@ -1,11 +1,12 @@
 use std::process;
+use std::env;
 
 mod day1;
 mod day2;
 mod utils;
 
 fn main() {
-    let arguments: Vec<_> = std::env::args().collect();
+    let arguments: Vec<_> = env::args().collect();
     let day = arguments[1].parse::<String>().unwrap();
     let day_str = day.as_str();
 
