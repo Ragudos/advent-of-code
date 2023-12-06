@@ -1,14 +1,17 @@
 use std::fs;
 
 pub fn read_file(path_to_file: &'static str) -> String {
-    let input_contents = fs::read_to_string(path_to_file)
-        .expect("Should have been able to read the file. Try running the code in the root directory of the development project.");
-
-    input_contents
+    fs::read_to_string(path_to_file)
+        .expect("Should have been able to read the file. Try running the code in the root directory of the development project.")
 }
 
-pub fn create_two_dimensional_array<T>(x: usize, y: usize, default_value: T) -> Vec<Vec<T>> 
-    where T: Copy
+pub fn create_two_dimensional_array<T>(
+    x: usize,
+    y: usize,
+    default_value: T,
+) -> Vec<Vec<T>>
+where
+    T: Copy,
 {
     let mut two_dimensional_array: Vec<Vec<T>> = Vec::with_capacity(x);
 
@@ -25,13 +28,17 @@ pub fn create_two_dimensional_array<T>(x: usize, y: usize, default_value: T) -> 
     two_dimensional_array
 }
 
-pub fn reset_two_dimensional_array<T>(two_dimensional_array: &mut Vec<Vec<T>>, default_value: T) 
-    where T: Copy
+pub fn reset_two_dimensional_array<T>(
+    two_dimensional_array: &mut [Vec<T>],
+    default_value: T,
+) where
+    T: Copy,
 {
-    for x in 0..two_dimensional_array.len() {
-        for y in 0..two_dimensional_array[x].len() {
+    // Wrestled with the borrow checker. This is bad since we create a new Vec by cloning. Should
+    // be referencing the original array when we loop.
+    for (x, _) in two_dimensional_array.to_owned().iter().enumerate() {
+        for (y, _) in two_dimensional_array[x].to_owned().iter().enumerate() {
             two_dimensional_array[x][y] = default_value;
         }
     }
 }
-

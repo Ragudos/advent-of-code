@@ -2,7 +2,7 @@ use crate::utils::read_file;
 
 pub fn main() {
     let binding = read_file("day1input.txt");
-    let input_contents = binding.split("\r\n").into_iter();    
+    let input_contents = binding.split("\r\n");
     let mut sum: usize = 0;
 
     for string in input_contents {
@@ -23,7 +23,11 @@ pub fn main() {
                 }
 
                 let sliced_string = String::from(string).split_off(idx);
-                let Some(first_named_int) = find_first_named_int(&sliced_string) else { continue };
+                let Some(first_named_int) =
+                    find_first_named_int(&sliced_string)
+                else {
+                    continue;
+                };
 
                 first_digit.push_str(&first_named_int);
                 break;
@@ -41,10 +45,15 @@ pub fn main() {
                     break;
                 }
 
-                let mut reversed_string = string.chars().rev().collect::<String>();
+                let mut reversed_string =
+                    string.chars().rev().collect::<String>();
                 let reversed_split_string = reversed_string.split_off(idx);
-                let sliced_string = reversed_split_string.chars().rev().collect::<String>();
-                let Some(last_named_int) = find_last_named_int(&sliced_string) else { continue };
+                let sliced_string =
+                    reversed_split_string.chars().rev().collect::<String>();
+                let Some(last_named_int) = find_last_named_int(&sliced_string)
+                else {
+                    continue;
+                };
 
                 last_digit.push_str(&last_named_int);
                 break;
@@ -52,13 +61,18 @@ pub fn main() {
         }
 
         let mut combined_digit = String::with_capacity(2);
-        
+
         combined_digit.push_str(&first_digit);
         combined_digit.push_str(&last_digit);
 
-        println!("First digit: {:?}, Last digit: {:?}, Combined digit: {:?}", first_digit, last_digit, combined_digit);
+        println!(
+            "First digit: {:?}, Last digit: {:?}, Combined digit: {:?}",
+            first_digit, last_digit, combined_digit
+        );
 
-        let Ok(parsed_digit) = combined_digit.parse::<usize>() else { continue; };
+        let Ok(parsed_digit) = combined_digit.parse::<usize>() else {
+            continue;
+        };
 
         sum += parsed_digit;
     }
@@ -73,7 +87,7 @@ fn find_last_named_int(string_int: &str) -> Option<String> {
         Some(String::from("2"))
     } else if string_int.ends_with("three") {
         Some(String::from("3"))
-    } else if string_int.ends_with("four"){
+    } else if string_int.ends_with("four") {
         Some(String::from("4"))
     } else if string_int.ends_with("five") {
         Some(String::from("5"))
@@ -106,7 +120,7 @@ fn find_first_named_int(string_int: &str) -> Option<String> {
     } else if string_int.starts_with("seven") {
         Some(String::from("7"))
     } else if string_int.starts_with("eight") {
-       Some(String::from("8"))
+        Some(String::from("8"))
     } else if string_int.starts_with("nine") {
         Some(String::from("9"))
     } else {

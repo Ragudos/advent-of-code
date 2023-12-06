@@ -1,5 +1,6 @@
-use std::process;
+use std::char;
 use std::env;
+use std::process;
 
 mod day1;
 mod day2;
@@ -16,8 +17,9 @@ fn main() {
             continue;
         }
 
-        let key_value_pair = argument.split("=").collect::<Vec<_>>();
-        
+        let splitter = "=";
+        let key_value_pair = argument.split(splitter).collect::<Vec<_>>();
+
         if key_value_pair.len() != 2 {
             println!("Invalid argument: {}", argument);
             process::exit(1);
@@ -29,19 +31,22 @@ fn main() {
         match key {
             "day" => day_str = value,
             "part" => part = value,
-            _ => {},
+            "backtrace" => {
+                if value == "true" {
+                    std::env::set_var("RUST_BACKTRACE", "1");
+                }
+            }
+            _ => {}
         }
     }
 
     match day_str {
         "1" => day1::main(),
-        "2" => day2::main(&part),
-        "3" => day3::main(&part),
+        "2" => day2::main(part),
+        "3" => day3::main(part),
         _ => {
             println!("Invalid day");
             process::exit(1);
-        },
+        }
     }
 }
-
-
