@@ -179,4 +179,3 @@ fn part_one() {
 
     println!("{}", sum_of_valid_games);
 }
-
