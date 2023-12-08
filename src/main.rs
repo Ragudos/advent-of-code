@@ -1,4 +1,4 @@
-use std::char;
+
 use std::env;
 use std::process;
 

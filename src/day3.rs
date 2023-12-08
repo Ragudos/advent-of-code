@@ -1,4 +1,6 @@
-use std::str::Split;
+
+
+use std::collections::HashMap;
 
 use crate::utils::read_file;
 
@@ -36,313 +38,151 @@ fn part2() {
     let mut sum_of_gear_parts = 0;
 
     for y in 0..(line_inputs.len() - 1) {
-        let row = &line_inputs[y];
+        let row = &line_inputs.get(y).unwrap();
 
-        let mut is_a_gear_part = false;
-        let mut first_engine_part_number = String::new();
-        let mut second_engine_part_number = String::new();
+        for x in 0..(row.len() - 1) {
+            let char = row.get(x).unwrap();
+            let char = char.chars().next().unwrap_or(' ');
+            let should_check_if_gear_part = is_gear_part(&char);
 
-        // println!("Current row idx: {}, Current row: {:?}", y, line_inputs[y]);
-
-        for x in 0..row.len() {
-            if let Some(character) =
-                get_character(&line_inputs, &y, &x, &SINGLE_POINT)
-            {
-                if let Some(character) = character.chars().next() {
-                    is_a_gear_part = is_gear_part(&character);
-                }
-            }
-
-            if !is_a_gear_part {
+            if !should_check_if_gear_part {
                 continue;
             }
 
-            let mut amount_of_adjacents = 0;
-            let mut is_gathering_number = false;
-            let mut has_gathered_number = false;
-            // -1, 0, 1
-            let mut vertical_directions_that_matched = [false, false, false];
+            let mut visited_indeces: HashMap<usize, Vec<usize>> = HashMap::new();
+            let mut adjacent_numbers: Vec<usize> = Vec::new();
 
-            println!("y {}, x {}", y, x);
+            for direction_options in DIRECTIONS {
+                let dy = <i8 as Into<isize>>::into(direction_options[0]);
+                let dx = <i8 as Into<isize>>::into(direction_options[1]);
 
-            for direction in DIRECTIONS {
-                let direction = (&direction[0], &direction[1]);
+                // Continuing means the vertical or horizontal index is negative.
+                let Some(vertical_idx) = y.checked_add_signed(dy) else { continue; };
+                let Some(horizontal_idx) = x.checked_add_signed(dx) else { continue; };
 
-                println!("Direction: {:?}", direction);
+                if vertical_idx >= line_inputs.len() {
+                    continue;
+                }
 
-                if let Some(character) =
-                    get_character(&line_inputs, &y, &x, &direction)
-                {
-                    if let Some(character) = character.chars().next() {
-                        if char::is_numeric(character) {
-                            println!("\tCharacter: {}, Adjacents: {}, Did find number: {}, Current sum: {}", character, amount_of_adjacents, has_gathered_number, sum_of_gear_parts);
+                let Some(row) = line_inputs.get(vertical_idx) else { continue; };
+                let character = row.get(horizontal_idx).unwrap();
+                let character = character.chars().next().unwrap();
 
-                            if (vertical_directions_that_matched[0]
-                                && *direction.0 == -1)
-                                || (vertical_directions_that_matched[1]
-                                    && *direction.0 == 0)
-                                || (vertical_directions_that_matched[2]
-                                    && *direction.0 == 1)
-                            {
-                                has_gathered_number = false;
-                                is_gathering_number = false;
-                                continue;
-                            }
+                if !char::is_numeric(character) {
+                    continue;
+                }
 
-                            if amount_of_adjacents == 0 {
-                                if let Some(vertical_direction) = y
-                                    .checked_add_signed(
-                                        <i8 as Into<isize>>::into(*direction.0),
-                                    )
-                                {
-                                    first_engine_part_number =
-                                        get_full_number_in_row(
-                                            &line_inputs[vertical_direction],
-                                            (x as isize)
-                                                .checked_add(
-                                                    *direction.1 as isize,
-                                                )
-                                                .unwrap_or(x as isize),
-                                            &-1,
-                                            &mut String::new(),
-                                            &mut [&false, &false],
-                                            &mut Vec::new(),
-                                        )
-                                        .to_string();
-                                    has_gathered_number = true;
+                let mut string_number = String::new();
 
-                                    if *direction.0 == -1 {
-                                        vertical_directions_that_matched[0] =
-                                            true;
-                                    } else if *direction.0 == 0 {
-                                        vertical_directions_that_matched[1] =
-                                            true;
-                                    } else if *direction.0 == 1 {
-                                        vertical_directions_that_matched[2] =
-                                            true;
-                                    }
-                                }
-                            }
+                string_number.push(character);
+                
+                let mut row_idx = horizontal_idx;
+                let mut direction = -1;
+                let mut directions_walked = [false, false];
 
-                            if amount_of_adjacents == 1 {
-                                if let Some(vertical_direction) = y
-                                    .checked_add_signed(
-                                        <i8 as Into<isize>>::into(*direction.0),
-                                    )
-                                {
-                                    println!("\tVertical direction: {}, Horizontal direction: {}", vertical_direction, x);
-                                    second_engine_part_number =
-                                        get_full_number_in_row(
-                                            &line_inputs[vertical_direction],
-                                            (x as isize)
-                                                .checked_add(
-                                                    *direction.1 as isize,
-                                                )
-                                                .unwrap_or(x as isize),
-                                            &-1,
-                                            &mut String::new(),
-                                            &mut [&false, &false],
-                                            &mut Vec::new(),
-                                        )
-                                        .to_string();
-                                    has_gathered_number = true;
+                if let Some(visited_indeces) = visited_indeces.get_mut(&vertical_idx) {
+                    if visited_indeces.contains(&horizontal_idx) {
+                        continue;
+                    }
+                } else {
+                    visited_indeces.insert(vertical_idx, vec![horizontal_idx]);
+                }
 
-                                    if *direction.0 == -1 {
-                                        vertical_directions_that_matched[0] =
-                                            true;
-                                    } else if *direction.0 == 0 {
-                                        vertical_directions_that_matched[1] =
-                                            true;
-                                    } else if *direction.0 == 1 {
-                                        vertical_directions_that_matched[2] =
-                                            true;
-                                    }
-                                }
-                            }
+                loop {
+                    if directions_walked[0] && directions_walked[1] {
+                        break;
+                    }
 
-                            if !is_gathering_number && has_gathered_number {
-                                amount_of_adjacents += 1;
-                            }
+                    if row_idx >=row.len() {
+                        break;
+                    }
 
-                            is_gathering_number = true;
-                            println!("\t\tFirst engine part number: {}, Second engine part number: {}", first_engine_part_number, second_engine_part_number);
+                    let character = row.get(row_idx).unwrap();
+                    let character = character.chars().next().unwrap_or(' ');
+
+                    // println!("\tCharacter: {}, Row index: {}, Vertical Index: {}, Visited indeces: {:?}, Current Adjacent Numbers: {:?}, Visited Directions: {:?}, Direction: {:?}", character, row_idx, vertical_idx, visited_indeces, adjacent_numbers, directions_walked, direction_options);
+
+                    let Some(visited_indeces) = visited_indeces.get_mut(&vertical_idx) else {
+                        println!("This should not happen.");
+                        break;
+                    };
+
+                    if visited_indeces.contains(&row_idx) {
+                        let Some(new_idx) = row_idx.checked_add_signed(direction) else {
+                            // if this is ran, then that means the direction was
+                            // -1.
+                            directions_walked[0] = true;
+                            direction = 1;
+                            row_idx += direction as usize;
+                            continue;
+                        };
+
+                        if row_idx < horizontal_idx {
+                            directions_walked[0] = true;
+                            direction = 1;
+                            row_idx += 1;
+                            continue;
+                        } else if row_idx > horizontal_idx {
+                            directions_walked[1] = true;
+                            direction = -1;
+                            row_idx = new_idx;
+                            continue;
+                        }
+                    } else {
+                        visited_indeces.push(row_idx);
+                    }
+                    
+                    if char::is_numeric(character) {
+                        if row_idx < horizontal_idx {
+                            string_number.insert(0, character);
+                        } else if row_idx > horizontal_idx {
+                            string_number.push(character);
+                        }
+                    } else {
+                        if row_idx < horizontal_idx {
+                            directions_walked[0] = true;
+                            direction = 1;
+                        } else if row_idx > horizontal_idx {
+                            directions_walked[1] = true;
+                            direction = -1;
                         }
                     }
+
+                    let new_idx = row_idx.checked_add_signed(direction);
+
+                    match new_idx {
+                        None => {
+                            directions_walked[0] = true;
+                            direction = 1;
+                            row_idx += direction as usize;
+                        },
+                        Some(new_idx) => row_idx = new_idx,
+                    }
+                }
+
+                let parsed_number = string_number.parse::<usize>();
+
+                match parsed_number {
+                    Ok(parsed_number) => adjacent_numbers.push(parsed_number),
+                    Err(_err) => { continue },
                 }
             }
 
-            // A gear part is adjacent to exactly two number parts.
-            // Since a gear part is a symbol, that means the adjacent numbers are already an engine
-            // part, so we don't need to check for them.
-            if amount_of_adjacents != 2 {
-                first_engine_part_number.clear();
-                second_engine_part_number.clear();
+            if adjacent_numbers.len() != 2 {
                 continue;
             }
 
-            let first_engine_part =
-                first_engine_part_number.parse::<usize>().unwrap_or(0);
-            let second_engine_part =
-                second_engine_part_number.parse::<usize>().unwrap_or(0);
+            let product = adjacent_numbers[0] * adjacent_numbers[1];
 
-            sum_of_gear_parts += first_engine_part * second_engine_part;
+            println!("\tProduct: {}", product);
+            println!("Adjacent Numbers: {:?}", adjacent_numbers);
 
-            first_engine_part_number.clear();
-            second_engine_part_number.clear();
+            sum_of_gear_parts += product;
         }
+
     }
 
     println!("Sum: {}", sum_of_gear_parts);
-}
-
-fn get_full_number_in_row<'a>(
-    row: &'a Vec<&str>,
-    idx_of_found_number_char: isize,
-    current_horizontal_direction: &'a i8,
-    current_number: &'a mut String,
-    visited: &'a mut [&bool; 2],
-    visited_indeces: &'a mut Vec<usize>,
-) -> &'a str {
-    // println!("Index: {}, Row: {:?}, Current direction: {}, Current number: {}, Visited: {:?}", idx_of_found_number_char, row, current_horizontal_direction, current_number, visited);
-
-    // This means that if we already wen to the left and right of the row string, then we are done.
-    if *visited[0] && *visited[1] {
-        return current_number;
-    }
-
-    if let Some(idx) =
-        idx_of_found_number_char.checked_add(<i8 as Into<isize>>::into(
-            *current_horizontal_direction,
-        ))
-    {
-        if idx < 0 {
-            visited[0] = &true;
-
-            return get_full_number_in_row(
-                row,
-                idx_of_found_number_char,
-                &1,
-                current_number,
-                visited,
-                visited_indeces,
-            );
-        }
-
-        if (idx as usize) > row.len() {
-            visited[1] = &true;
-
-            return get_full_number_in_row(
-                row,
-                idx,
-                &-1,
-                current_number,
-                visited,
-                visited_indeces,
-            );
-        }
-
-        if visited_indeces.contains(&(idx as usize)) {
-            return get_full_number_in_row(
-                row,
-                idx,
-                current_horizontal_direction,
-                current_number,
-                visited,
-                visited_indeces,
-            );
-        }
-
-        let character = row[idx as usize];
-
-        visited_indeces.push(idx as usize);
-
-        if idx < idx_of_found_number_char {
-            if let Some(character) = character.chars().next() {
-                if char::is_numeric(character) {
-                    current_number.insert_str(0, &character.to_string());
-
-                    return get_full_number_in_row(
-                        row,
-                        idx,
-                        current_horizontal_direction,
-                        current_number,
-                        visited,
-                        visited_indeces,
-                    );
-                } else {
-                    visited[0] = &true;
-
-                    return get_full_number_in_row(
-                        row,
-                        idx,
-                        &1,
-                        current_number,
-                        visited,
-                        visited_indeces,
-                    );
-                }
-            } else {
-                visited[0] = &true;
-
-                return get_full_number_in_row(
-                    row,
-                    idx,
-                    &1,
-                    current_number,
-                    visited,
-                    visited_indeces,
-                );
-            }
-        } else if idx > idx_of_found_number_char {
-            if let Some(character) = character.chars().next() {
-                if char::is_numeric(character) {
-                    current_number.push_str(&character.to_string());
-
-                    return get_full_number_in_row(
-                        row,
-                        idx,
-                        current_horizontal_direction,
-                        current_number,
-                        visited,
-                        visited_indeces,
-                    );
-                } else {
-                    visited[1] = &true;
-
-                    return get_full_number_in_row(
-                        row,
-                        idx,
-                        &-1,
-                        current_number,
-                        visited,
-                        visited_indeces,
-                    );
-                }
-            } else {
-                visited[1] = &true;
-
-                return get_full_number_in_row(
-                    row,
-                    idx,
-                    &-1,
-                    current_number,
-                    visited,
-                    visited_indeces,
-                );
-            }
-        } else {
-            return get_full_number_in_row(
-                row,
-                idx,
-                current_horizontal_direction,
-                current_number,
-                visited,
-                visited_indeces,
-            );
-        }
-    };
-
-    current_number
 }
 
 fn part1() {
@@ -391,10 +231,8 @@ fn part1() {
             // If we are checking for an engine part in this row and we are on a number char,
             // check if this number char is an engine part. If so, then we are not checking for an
             // engine part anymore.
-            if is_number && is_checking {
-                if check_if_engine_part(&line_inputs, &y, &x) {
-                    is_checking = false;
-                }
+            if is_number && is_checking && check_if_engine_part(&line_inputs, &y, &x) {
+                is_checking = false;
             }
 
             if is_number {
@@ -469,7 +307,11 @@ fn get_character<'a>(
         return None;
     }
 
-    Some(contents[vertical_direction][horizontal_direction])
+    if let Some(row) = contents.get(vertical_direction) {
+        return row.get(horizontal_direction).copied();
+    }
+
+    None
 }
 
 fn is_dot(char: &char) -> bool {
