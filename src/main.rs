@@ -5,6 +5,7 @@ use std::process;
 mod day1;
 mod day2;
 mod day3;
+mod day4;
 mod utils;
 
 fn main() {
@@ -44,6 +45,7 @@ fn main() {
         "1" => day1::main(),
         "2" => day2::main(part),
         "3" => day3::main(part),
+        "4" => day4::main(part),
         _ => {
             println!("Invalid day");
             process::exit(1);
